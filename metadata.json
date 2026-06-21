@@ -1,0 +1,6 @@
+{
+  "name": "طريق الهدى",
+  "description": "تطبيق إسلامي عصري متكامل يضم مواقيت الصلاة والقبلة، القرآن الكريم مع تفسير تفاعلي بالذكاء الاصطناعي، الأذكار والمسبحة الإلكترونية، بالإضافة لمستشار إيماني ذكي للإجابة عن أسئلتكم الدينية.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
