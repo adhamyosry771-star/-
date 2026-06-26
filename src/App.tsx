@@ -25,7 +25,15 @@ import {
   Settings,
   Battery,
   Wifi,
-  BookmarkCheck
+  BookmarkCheck,
+  Home,
+  Sunrise,
+  Sunset,
+  Sun,
+  Moon,
+  CloudSun,
+  Bell,
+  Menu
 } from "lucide-react";
 import { quranData } from "./data/quran";
 import { athkarData } from "./data/athkar";
@@ -155,7 +163,7 @@ function convertTo12Hour(timeStr: string): string {
   const m = parts[1];
   if (isNaN(h)) return timeStr;
   const h12 = h % 12 === 0 ? 12 : h % 12;
-  const suffix = h >= 12 ? "م" : "ص";
+  const suffix = h >= 12 ? " PM" : " AM";
   return `${h12}:${m}${suffix}`;
 }
 
@@ -323,6 +331,13 @@ export default function App() {
 
   const [quranFontSize, setQuranFontSize] = useState<number>(23);
   const [quranSearch, setQuranSearch] = useState<string>("");
+  const [showSurahDrawer, setShowSurahDrawer] = useState<boolean>(false);
+  const [selectedVerseNum, setSelectedVerseNum] = useState<number | null>(null);
+
+  useEffect(() => {
+    setSelectedVerseNum(null);
+  }, [selectedSurah.number]);
+
   const [activeTafsirVerse, setActiveTafsirVerse] = useState<number | null>(null);
   const [verseTafsirContent, setVerseTafsirContent] = useState<string>("");
   const [isTafsirLoading, setIsTafsirLoading] = useState<boolean>(false);
@@ -692,19 +707,25 @@ export default function App() {
   }, [isAligned, activeTab]);
 
   return (
-    <div className="min-h-screen bg-[#F1EFE9] md:py-6 flex flex-col items-center justify-center font-kufi">
+    <div 
+      className="min-h-screen md:py-6 flex flex-col items-center justify-center font-kufi bg-no-repeat bg-cover bg-center"
+      style={{ backgroundImage: "url('https://i.top4top.io/p_3828dax2u0.jpg')" }}
+    >
       
       {/* Standard Clean Responsive Web Application Container */}
-      <div className="w-full max-w-3xl bg-[#FDFBF7] text-[#2D3436] flex flex-col md:rounded-3xl md:shadow-lg md:border md:border-gray-200/60 relative overflow-hidden h-screen md:h-[850px]">
+      <div 
+        className="w-full max-w-3xl text-white flex flex-col md:rounded-3xl md:shadow-lg md:border border-white/10 relative overflow-hidden h-[100dvh] md:h-[850px] transition-all duration-300 bg-no-repeat bg-cover bg-center"
+        style={{ backgroundImage: "url('https://i.top4top.io/p_3828dax2u0.jpg')" }}
+      >
         
         {/* App Interior Navbar */}
-        <header className="bg-[#1E4D2B] text-white px-5 py-4 shadow-md">
+        <header className="px-5 py-4 bg-black/60 text-white shadow-md">
           <div className="flex justify-between items-center gap-3">
             
             {/* Title & Brand */}
             <div className="flex items-center gap-2.5 shrink-0">
               <div 
-                className="w-10 h-10 bg-[#C5A059] text-[#1E4D2B] rounded-xl flex items-center justify-center cursor-pointer active:rotate-12 transition-transform overflow-hidden shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer active:rotate-12 transition-all overflow-hidden shrink-0 bg-white/5 border border-white/10"
                 onClick={() => { setActiveTab("home"); triggerSound("chime"); }}
               >
                 <img 
@@ -727,7 +748,7 @@ export default function App() {
                   setSoundEnabled(!soundEnabled);
                   triggerSound("chime");
                 }}
-                className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white transition-colors"
+                className="p-2 rounded-lg transition-colors bg-white/5 hover:bg-white/10 text-white"
                 title="تأثيرات الصوت"
               >
                 {soundEnabled ? (
@@ -737,7 +758,7 @@ export default function App() {
                 )}
               </button>
 
-              <div className="bg-white/5 border border-[#C5A059]/25 hover:bg-white/10 transition-colors rounded-lg px-2.5 py-1 flex items-center gap-1.5 text-xs">
+              <div className="bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5 text-xs">
                 <MapPin className="w-3.5 h-3.5 text-[#C5A059]" />
                 <select
                   value={selectedCity.nameAr}
@@ -752,7 +773,7 @@ export default function App() {
                   className="bg-transparent font-bold text-xs text-[#C5A059] border-none focus:outline-none appearance-none cursor-pointer pr-1 w-auto max-w-[150px] sm:max-w-none text-right"
                 >
                   {EGYPT_CITIES.map(c => (
-                    <option key={c.nameAr} className="text-[#1E4D2B] bg-[#FDFBF7]" value={c.nameAr}>{c.nameAr}</option>
+                    <option key={c.nameAr} className="text-xs text-white bg-[#09101C]" value={c.nameAr}>{c.nameAr}</option>
                   ))}
                 </select>
               </div>
@@ -760,7 +781,7 @@ export default function App() {
 
           </div>
 
-          <div className="mt-3 flex justify-between items-center text-[11px] text-white/70 font-semibold bg-black/10 rounded-xl px-2.5 py-1.5">
+          <div className="mt-3 flex justify-between items-center text-[11px] font-semibold rounded-xl px-2.5 py-1.5 bg-white/5 text-white/70 border border-white/5">
             <span className="text-[#C5A059]">{hijriDateStr}</span>
             <span>{selectedCity.nameAr} • مصر</span>
           </div>
@@ -769,113 +790,127 @@ export default function App() {
 
 
         {/* Mobile View Container Screen Body (With custom styled non-distracting elements) */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-[#FDFBF7] islamic-pattern">
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar bg-black/35 backdrop-blur-[1px] relative">
           
           {/* ================= TAB: HOME ================= */}
           {activeTab === "home" && (
-            <div className="flex flex-col gap-4 select-none">
+            <div className="flex flex-col gap-4 select-none pb-2">
               
-              {/* Stable Next Prayer Display Box */}
-              <div className="bg-[#1E4D2B] text-white p-5 rounded-[24px] border border-[#C5A059] relative overflow-hidden">
-
-                <span className="text-[#C5A059] text-[10px] font-bold tracking-widest block uppercase">الصلاة القادمة في {selectedCity.nameAr}</span>
-                <div className="mt-2 pb-1">
-                  <p className="text-white/90 text-sm">بقي على {nextPrayerName === "الشروق" ? "موعد" : "موعد أذان"} <span className="font-bold text-[#C5A059]">{nextPrayerName}</span>: <span className="font-mono text-[#C5A059] font-bold tracking-wider">{countdownStr}</span></p>
-                </div>
-
-                {/* Grid of basic Egyptian prayer hours */}
-                <div className="grid grid-cols-6 gap-1 border-t border-white/10 pt-3.5 mt-3.5 text-center">
-                  {[
-                    { label: "الفجر", val: activePrayerTimes.Fajr },
-                    { label: "الشروق", val: activePrayerTimes.Sunrise },
-                    { label: "الظهر", val: activePrayerTimes.Dhuhr },
-                    { label: "العصر", val: activePrayerTimes.Asr },
-                    { label: "المغرب", val: activePrayerTimes.Maghrib },
-                    { label: "العشاء", val: activePrayerTimes.Isha },
-                  ].map((item, id) => {
-                    const isNext = item.label === nextPrayerName;
-                    return (
-                      <div key={id} className={`p-1 rounded-lg ${isNext ? "bg-[#C5A059] text-[#1E4D2B] font-bold" : "text-white/70"}`}>
-                        <div className="text-[9px] whitespace-nowrap leading-none mb-1 text-center">{item.label}</div>
-                        <div className="text-[10px] sm:text-xs font-bold font-mono tracking-tighter text-center whitespace-nowrap">{convertTo12Hour(item.val)}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Verses & Custom Islamic Quote For Comfort (No dynamic animations, pure cozy text block) */}
-              <div className="p-4 rounded-2xl bg-[#C5A059]/10 border border-[#C5A059]/30">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="bg-[#1E4D2B] text-[#C5A059] px-2.5 py-0.5 rounded-full text-[10px] font-bold">آية اليوم والتدبر</span>
-                  <button 
-                    onClick={() => copyStaticText(`"وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ ۚ وَمَا تُقَدِّمُوا لِأَنْفُسِكُمْ مِنْ خَيْرٍ تَجِدُوهُ عِنْدَ اللَّهِ"`)}
-                    className="p-1 rounded hover:bg-[#F4EDE2] text-[#1E4D2B]"
-                    title="نسخ الآية الكريمة"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <p className="font-amiri text-lg text-amber-950 font-bold leading-normal text-right mt-2 my-1">
-                  "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ ۚ وَمَا تُقَدِّمُوا لِأَنْفُسِكُمْ مِنْ خَيْرٍ تَجِدُوهُ عِنْدَ اللَّهِ ۗ إِنَّ اللَّهَ بِمَا تَعْمَلُونَ بَصِيرٌ" (البقرة - ١١٠)
-                </p>
-                <p className="text-[11px] text-gray-500 mt-2 font-medium leading-normal border-t border-gray-200/50 pt-2 text-right">
-                  الدروس الروحية: تحثنا الآية على المداومة الراسخة على بناء الصلوات الخمس والعمل الطيب فإنه رصيدنا المذخور عند الباري عز وجل.
-                </p>
-              </div>
-
-              {/* Simple Navigation Buttons Grid inside Home screen */}
-              <div className="grid grid-cols-2 gap-3.5">
+              {/* Elegant Transparent Next Prayer Section */}
+              <div className="relative w-full py-7 flex flex-col items-center justify-center overflow-hidden rounded-3xl bg-[#0F1C2E]/60 border border-white/10 shadow-xl">
                 
-                <button
-                  onClick={() => { setActiveTab("quran"); triggerSound("chime"); }}
-                  className="bg-white p-4 rounded-xl border border-[#C5A059]/25 hover:border-[#1E4D2B] transition-colors text-right flex flex-col gap-1 shadow-sm"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#1E4D2B]/5 flex items-center justify-center text-lg text-[#1E4D2B]">📖</div>
-                  <span className="font-bold text-xs text-[#1E4D2B] mt-2">القرآن الكريم والتفسير</span>
-                  <span className="text-[9px] text-gray-400">تلاوة متكاملة وشرح رصين</span>
-                </button>
+                {/* Content text */}
+                <div className="relative z-10 text-center flex flex-col items-center justify-center">
+                  <span className="text-emerald-400 text-[10px] font-bold tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-full uppercase">
+                    {nextPrayerName === "الشروق" ? "موعد الشروق" : `صلاة ${nextPrayerName}`}
+                  </span>
+                  
+                  <h2 className="text-4xl font-semibold tracking-widest text-white mt-3 select-all">
+                    {(() => {
+                      const timeStr = 
+                        nextPrayerName === "الفجر" ? activePrayerTimes.Fajr :
+                        nextPrayerName === "الشروق" ? activePrayerTimes.Sunrise :
+                        nextPrayerName === "الظهر" ? activePrayerTimes.Dhuhr :
+                        nextPrayerName === "العصر" ? activePrayerTimes.Asr :
+                        nextPrayerName === "المغرب" ? activePrayerTimes.Maghrib :
+                        nextPrayerName === "العشاء" ? activePrayerTimes.Isha : "";
+                      if (!timeStr) return "";
+                      const parts = timeStr.split(":");
+                      if (parts.length < 2) return timeStr;
+                      const h = parseInt(parts[0], 10);
+                      const m = parts[1];
+                      if (isNaN(h)) return timeStr;
+                      const h12 = h % 12 === 0 ? 12 : h % 12;
+                      const suffix = h >= 12 ? "PM" : "AM";
+                      return (
+                        <span className="inline-flex items-baseline font-mono">
+                          <span>{h12}:{m}</span>
+                          <span className="text-[13px] font-normal text-white/70 ml-1 select-none tracking-normal">{suffix}</span>
+                        </span>
+                      );
+                    })()}
+                  </h2>
 
-                <button
-                  onClick={() => { setActiveTab("athkar"); triggerSound("chime"); }}
-                  className="bg-white p-4 rounded-xl border border-[#C5A059]/25 hover:border-[#1E4D2B] transition-colors text-right flex flex-col gap-1 shadow-sm"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#1E4D2B]/5 flex items-center justify-center text-lg text-[#1E4D2B]">☀️</div>
-                  <span className="font-bold text-xs text-[#1E4D2B] mt-2">أذكار الصباح والمساء</span>
-                  <span className="text-[9px] text-gray-400">حصن نفسك بالأذكار والسنن</span>
-                </button>
+                  <div className="mt-4 inline-flex items-center gap-1.5 bg-black/25 rounded-full px-3.5 py-1 border border-white/5 text-xs">
+                    <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                    <p className="text-white/80 font-medium text-[11px]">
+                      بقي {nextPrayerName === "الشروق" ? "على موعد" : "على أذان"}: <span className="font-mono text-emerald-400 font-black tracking-wider bg-black/35 px-1.5 py-0.5 rounded ml-1">{countdownStr}</span>
+                    </p>
+                  </div>
 
-                <button
-                  onClick={() => { setActiveTab("sebha"); triggerSound("chime"); }}
-                  className="bg-white p-4 rounded-xl border border-[#C5A059]/25 hover:border-[#1E4D2B] transition-colors text-right flex flex-col gap-1 shadow-sm"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#1E4D2B]/5 flex items-center justify-center text-lg text-[#C5A059]">📿</div>
-                  <span className="font-bold text-xs text-[#1E4D2B] mt-2">المسبحة الإلكترونية</span>
-                  <span className="text-[9px] text-gray-400">تابع تسبيحك ووردك اليومي</span>
-                </button>
+                  {/* Elegant Gregorian Date (e.g. الجمعة 26 يونيو) */}
+                  <span className="text-[11px] text-white/50 mt-2.5 font-bold font-sans tracking-wide">
+                    {(() => {
+                      try {
+                        return new Intl.DateTimeFormat("ar-EG-u-nu-latn", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long"
+                        }).format(currentTime).replace("،", "");
+                      } catch (e) {
+                        return "";
+                      }
+                    })()}
+                  </span>
+                </div>
+              </div>
 
-                <button
-                  onClick={() => { setActiveTab("qibla"); triggerSound("chime"); }}
-                  className="bg-white p-4 rounded-xl border border-[#C5A059]/25 hover:border-[#1E4D2B] transition-colors text-right flex flex-col gap-1 shadow-sm"
-                >
-                  <div className="w-8 h-8 rounded-full bg-[#1E4D2B]/5 flex items-center justify-center text-lg text-[#1E4D2B]">🧭</div>
-                  <span className="font-bold text-xs text-[#1E4D2B] mt-2">اتصال القبلة والبوصلة</span>
-                  <span className="text-[9px] text-gray-400">دليل دقيق يوجهك لمكة</span>
-                </button>
+              {/* Prayer Times Stack Container (Perfect single-column list of horizontal rectangle strips for full mobile viewability) */}
+              <div className="bg-[#0F1C2E]/60 rounded-3xl border border-white/10 p-3.5 shadow-xl flex flex-col gap-2.5">
+                {[
+                  { label: "الفجر", val: activePrayerTimes.Fajr, icon: <Sunrise className="w-4 h-4" /> },
+                  { label: "الشروق", val: activePrayerTimes.Sunrise, icon: <CloudSun className="w-4 h-4" /> },
+                  { label: "الظهر", val: activePrayerTimes.Dhuhr, icon: <Sun className="w-4 h-4" /> },
+                  { label: "العصر", val: activePrayerTimes.Asr, icon: <CloudSun className="w-4 h-4" /> },
+                  { label: "المغرب", val: activePrayerTimes.Maghrib, icon: <Sunset className="w-4 h-4" /> },
+                  { label: "العشاء", val: activePrayerTimes.Isha, icon: <Moon className="w-4 h-4" /> },
+                ].map((item, id) => {
+                  const isNext = item.label === nextPrayerName;
+                  return (
+                    <div
+                      key={id}
+                      className={`flex items-center justify-between px-4 py-3 rounded-2xl transition-all duration-300 border relative ${
+                        isNext
+                          ? "bg-emerald-500/10 text-white font-bold border-emerald-500/35"
+                          : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] text-white/90"
+                      }`}
+                    >
+                      {/* Right Part: Icon + Label */}
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                          isNext ? "bg-emerald-500/20 text-emerald-400" : "bg-white/5 text-white/50"
+                        }`}>
+                          {item.icon}
+                        </div>
+                        <span className={`text-sm ${isNext ? "text-emerald-400 font-black" : "text-white/80 font-medium"}`}>
+                          {item.label}
+                        </span>
+                      </div>
 
+                      {/* Left Part: Time */}
+                      <div className="flex items-center">
+                        <span className={`text-sm font-bold font-mono tracking-wide ${
+                          isNext ? "text-emerald-300" : "text-white/70"
+                        }`}>
+                          {convertTo12Hour(item.val)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Special Egyptian Mosques & Historical Landmarks Info Card */}
-              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl">
-                <span className="text-[10px] bg-[#1E4D2B]/10 text-[#1E4D2B] px-2 py-0.5 rounded-full font-bold">نفحات إسلامية مصرية</span>
-                <p className="text-xs text-gray-600 mt-2 leading-relaxed">
+              <div className="p-3.5 bg-[#0F1E36]/30 border border-white/5 rounded-xl">
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold">نفحات إسلامية مصرية</span>
+                <p className="text-xs text-white/60 mt-2 leading-relaxed">
                   مصر بلد الألف مئذنة، من الأزهر الشريف وجامع عمرو بن العاص إلى مسجد الفتاح العليم، تمسك بقرآنك وتلاوتك واجعل السكينة تعمر ثنايا قلبك الليلة.
                 </p>
               </div>
 
               {/* Designer & Developer Credit */}
-              <div className="text-center mt-3 mb-1 select-none">
-                <span className="text-xs text-gray-400 font-medium block">
+              <div className="text-center mt-2.5 mb-0 select-none">
+                <span className="text-[11px] text-white/25 font-medium block">
                   تم تصميم وتطوير التطبيق بواسطة المهندس أدهم
                 </span>
               </div>
@@ -885,190 +920,248 @@ export default function App() {
 
           {/* ================= TAB: QURAN ================= */}
           {activeTab === "quran" && (
-            <div className="flex flex-col gap-4 text-right">
+            <div className="flex-1 flex flex-col h-full text-right animate-in fade-in duration-200">
               
-              {/* Search Surah Options */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-[#C5A059] absolute top-3 right-3" />
-                <input
-                  type="text"
-                  value={quranSearch}
-                  onChange={(e) => setQuranSearch(e.target.value)}
-                  placeholder="ابحث عن السورة (الفاتحة، الملك، الكهف)..."
-                  className="w-full bg-[#F4EDE2]/40 text-xs text-[#1E4D2B] font-bold border border-[#C5A059]/40 rounded-xl pr-9 pl-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-[#1E4D2B]"
-                />
-              </div>
+              {/* IF showSurahDrawer is TRUE: SHOW THE FULL INDEX PAGE */}
+              {showSurahDrawer ? (
+                <div className="flex-1 flex flex-col gap-4">
+                  {/* Index Header & Search Bar */}
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-center bg-black/20 p-3 rounded-xl border border-white/5">
+                      <div className="flex items-center gap-2">
+                        <Menu className="w-5 h-5 text-emerald-400" />
+                        <span className="font-bold text-sm text-emerald-400">الفهرس العام للسور الكريمة</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowSurahDrawer(false);
+                          triggerSound("chime");
+                        }}
+                        className="text-[10px] bg-emerald-500/10 text-emerald-300 px-2 py-1 rounded-md border border-emerald-500/20 hover:bg-emerald-500/20 transition-all font-bold flex items-center gap-1"
+                      >
+                        <span>إغلاق ✕</span>
+                      </button>
+                    </div>
 
-              {/* Surahs Scroll Tab (Horizonal navigation without fly effects) */}
-              <div className="flex gap-1.5 overflow-x-auto pb-2 custom-scrollbar">
-                {filteredSurahs.map((surah) => {
-                  const isCur = selectedSurah.number === surah.number;
-                  return (
-                    <button
-                      key={surah.number}
-                      onClick={() => {
-                        setSelectedSurah(surah);
-                        setActiveTafsirVerse(null);
-                        setVerseTafsirContent("");
-                        triggerSound("chime");
-                      }}
-                      className={`px-3 py-2 text-xs rounded-xl font-bold whitespace-nowrap border ${
-                        isCur
-                          ? "bg-[#1E4D2B] text-white border-[#1E4D2B]"
-                          : "bg-white text-gray-600 border-gray-200 hover:border-[#C5A059]"
-                      }`}
-                    >
-                      {surah.name}
-                    </button>
-                  );
-                })}
-              </div>
+                    <div className="relative">
+                      <Search className="w-4 h-4 text-emerald-400 absolute top-3 right-3" />
+                      <input
+                        type="text"
+                        value={quranSearch}
+                        onChange={(e) => setQuranSearch(e.target.value)}
+                        placeholder="ابحث عن السورة (الفاتحة، الملك، الكهف)..."
+                        className="w-full bg-black/45 text-xs text-white font-bold border border-white/10 rounded-xl pr-9 pl-3 py-2.5 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 placeholder-white/30 text-right"
+                      />
+                    </div>
+                  </div>
 
-              {/* Quran Bookmarked Toggles */}
-              <div className="bg-[#FCD757]/10 p-3 rounded-xl border border-[#C5A059]/30 text-xs">
-                <div className="flex items-center gap-1.5 text-[#1E4D2B] font-bold">
-                  <Bookmark className="w-3.5 h-3.5 fill-current text-[#C5A059]" />
-                  <span>العلامات المرجعية المحفوظة:</span>
-                </div>
-                {bookmarkedVerses.length === 0 ? (
-                  <p className="text-gray-400 text-[10px] mt-1.5">لا توجد آيات محفوظة حالياً. المس علامة العلم بجانب الآيات لحفظها.</p>
-                ) : (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {bookmarkedVerses.map(key => {
-                      const [sId, vId] = key.split("-").map(Number);
-                      const sName = quranData.find(q => q.number === sId)?.name || `سورة ${sId}`;
+                  {/* Vertical Surah Index List - Stacked under each other */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2 pr-1 max-h-[500px]">
+                    {filteredSurahs.map((surah) => {
+                      const isCur = selectedSurah.number === surah.number;
                       return (
                         <button
-                          key={key}
+                          key={surah.number}
                           onClick={() => {
-                            const foundS = quranData.find(q => q.number === sId);
-                            if (foundS) {
-                              setSelectedSurah(foundS);
-                              triggerSound("chime");
-                              showInstantTip(`انتقلت إلى آية ${vId} من سورة ${foundS.name}`);
-                            }
+                            setSelectedSurah(surah);
+                            setActiveTafsirVerse(null);
+                            setVerseTafsirContent("");
+                            setShowSurahDrawer(false);
+                            triggerSound("chime");
                           }}
-                          className="bg-white border border-[#C5A059]/30 text-[10px] font-bold text-[#1E4D2B] px-2 py-1 rounded"
+                          className={`w-full text-right px-4 py-3 rounded-xl text-xs font-bold border transition-all flex justify-between items-center ${
+                            isCur
+                              ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                              : "bg-black/35 text-white/80 border-white/5 hover:border-emerald-500/20 hover:bg-black/50"
+                          }`}
                         >
-                          {sName} • آية {vId}
+                          <div className="flex items-center gap-3">
+                            <span className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-[11px] text-emerald-400 font-mono font-bold border border-emerald-500/20">
+                              {surah.number}
+                            </span>
+                            <span className="text-sm font-bold">{surah.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] text-white/40">
+                            <span>{surah.revelationType === "Meccan" ? "مكية" : "مدنية"}</span>
+                            <span>•</span>
+                            <span>{surah.numberOfAyahs} آية</span>
+                          </div>
                         </button>
                       );
                     })}
+                    {filteredSurahs.length === 0 && (
+                      <div className="text-center py-12 text-white/40 text-xs">لا توجد سورة تطابق البحث.</div>
+                    )}
                   </div>
-                )}
-              </div>
-
-              {/* Reader Board */}
-              <div className="bg-white rounded-2xl border border-[#C5A059]/30 p-4 shadow-sm flex flex-col gap-4">
-                
-                {/* Header Surah Title */}
-                <div className="text-center pb-4 border-b border-gray-100 bg-[#1E4D2B]/5 rounded-xl pt-2">
-                  <span className="text-[10px] text-gray-400 font-bold block">سورة {selectedSurah.revelationType} • {selectedSurah.numberOfAyahs} آيات</span>
-                  <h3 className="font-amiri text-2xl font-black text-[#1E4D2B] mt-1">{selectedSurah.name}</h3>
-                  {selectedSurah.number !== 1 && (
-                    <p className="font-amiri text-sm text-amber-900 mt-2 font-bold select-none text-center">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-                  )}
                 </div>
+              ) : (
+                /* IF showSurahDrawer is FALSE: SHOW THE BEAUTIFUL FULL-PAGE READING VIEW */
+                <div className="flex-1 flex flex-col gap-3">
+                  
+                  {/* Top Compact Navigation & Settings Bar */}
+                  <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-xl border border-white/5">
+                    
+                    {/* Index Drawer Button */}
+                    <button
+                      onClick={() => {
+                        setShowSurahDrawer(true);
+                        triggerSound("chime");
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/25 rounded-lg text-xs font-bold transition-all"
+                    >
+                      <Menu className="w-4 h-4" />
+                      <span>فهرس السور</span>
+                    </button>
 
-                {/* Verses Container */}
-                <div className="flex flex-col gap-4 max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
-                  {isSurahLoading ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-[#1E4D2B]">
-                      <Loader2 className="w-8 h-8 animate-spin text-[#C5A059] mb-3" />
-                      <p className="font-sans text-xs text-gray-500 font-bold">جاري تحميل آيات سورة {selectedSurah.name} الكريمة...</p>
-                      <span className="text-[10px] text-gray-400 mt-1">نسعى لتوفير المصحف كاملاً بجودة عالية</span>
-                    </div>
-                  ) : (selectedSurah.verses && selectedSurah.verses.length > 0) ? (
-                    selectedSurah.verses.map((verse) => {
-                      const isFav = bookmarkedVerses.includes(`${selectedSurah.number}-${verse.number}`);
-                      const isTaf = activeTafsirVerse === verse.number;
-
-                      return (
-                        <div
-                          key={verse.number}
-                          className={`p-3 rounded-xl border ${
-                            isTaf ? "bg-[#1E4D2B]/5 border-[#C5A059]" : "bg-transparent border-gray-100 hover:bg-[#F4EDE2]/10"
-                          }`}
+                    {/* Compact Font Size Adjuster */}
+                    <div className="flex items-center gap-2.5 text-xs text-white/60">
+                      <span>حجم الخط:</span>
+                      <div className="flex items-center gap-1 bg-black/30 rounded-lg p-0.5 border border-white/5">
+                        <button 
+                          onClick={() => { setQuranFontSize(Math.max(quranFontSize - 2, 16)); triggerSound("bead"); }} 
+                          className="w-6 h-6 flex items-center justify-center rounded text-white/80 font-bold hover:bg-white/5"
                         >
-                          {/* Upper Verse Actions Bar */}
-                          <div className="flex justify-between items-center text-xs mb-2 text-gray-400">
-                            <span className="bg-gray-100 text-gray-600 font-black rounded-full w-5 h-5 flex items-center justify-center text-[10px]">{verse.number}</span>
+                          -
+                        </button>
+                        <span className="font-mono font-bold text-emerald-400 px-1.5 text-[11px]">{quranFontSize}px</span>
+                        <button 
+                          onClick={() => { setQuranFontSize(Math.min(quranFontSize + 2, 36)); triggerSound("bead"); }} 
+                          className="w-6 h-6 flex items-center justify-center rounded text-white/80 font-bold hover:bg-white/5"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Complete Mushaf Page View */}
+                  <div className="flex-1 flex flex-col">
+                    {isSurahLoading ? (
+                      <div className="flex-1 flex flex-col items-center justify-center py-20 text-white">
+                        <Loader2 className="w-8 h-8 animate-spin text-emerald-400 mb-3" />
+                        <p className="font-sans text-xs text-white/70 font-bold">جاري تحميل آيات {selectedSurah.name} الكريمة...</p>
+                        <span className="text-[10px] text-white/40 mt-1">نسعى لتوفير المصحف كاملاً بجودة عالية</span>
+                      </div>
+                    ) : (selectedSurah.verses && selectedSurah.verses.length > 0) ? (
+                      <div className="flex-1 flex flex-col gap-3 h-full">
+                        
+                        {/* Authentic Elegant Mushaf Page */}
+                        <div 
+                          className="flex-1 bg-[#FAF6EC] text-[#1C120C] border-2 border-amber-900/15 rounded-2xl p-1.5 md:p-2.5 shadow-2xl relative min-h-[460px] max-h-[500px] flex flex-col" 
+                          dir="rtl"
+                        >
+                          {/* Inner Decorative Islamic Border Frame */}
+                          <div className="flex-1 border-2 border-amber-900/10 rounded-xl p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col justify-start relative">
                             
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleToggleBookmark(selectedSurah.number, verse.number)}
-                                className={`p-1 rounded ${isFav ? "text-[#C5A059] bg-amber-50" : "text-gray-300 hover:text-[#C5A059]"}`}
-                              >
-                                <Bookmark className="w-3.5 h-3.5 fill-current" />
-                              </button>
+                            {/* Traditional Surah Header Frame Box */}
+                            <div className="border border-amber-950/20 rounded-lg py-2 px-4 mb-5 bg-amber-950/[0.03] text-center select-none max-w-xs mx-auto w-full relative">
+                              {/* Decorative corner accents */}
+                              <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-amber-950/30"></div>
+                              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-amber-950/30"></div>
+                              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-amber-950/30"></div>
+                              <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-amber-950/30"></div>
+                              
+                              <span className="text-[9px] text-amber-900/60 font-bold block leading-none mb-1">
+                                سورة {selectedSurah.revelationType === "Meccan" ? "مكية" : "مدنية"} • {selectedSurah.numberOfAyahs} آية
+                              </span>
+                              <h3 className="font-amiri text-xl font-extrabold text-amber-950 tracking-wide leading-none">
+                                {selectedSurah.name}
+                              </h3>
+                            </div>
 
-                              <button
-                                onClick={() => handleFetchTafsir(verse, selectedSurah)}
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${isTaf ? "bg-[#C5A059] text-[#1E4D2B]" : "bg-[#1E4D2B]/10 text-[#1E4D2B]"}`}
-                              >
-                                التدبر والبيان
-                              </button>
+                            {/* Basmalah */}
+                            {selectedSurah.number !== 1 && selectedSurah.number !== 9 && (
+                              <div className="text-center mb-5 font-bold text-amber-950 font-amiri text-lg select-none tracking-normal">
+                                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                              </div>
+                            )}
 
+                            {/* Quran text flowing naturally */}
+                            <div 
+                              className="leading-[2.6] text-center font-amiri tracking-normal" 
+                              style={{ fontSize: `${quranFontSize}px` }}
+                            >
+                              {selectedSurah.verses.map((verse) => {
+                                const isSelected = selectedVerseNum === verse.number;
+                                return (
+                                  <span
+                                    key={verse.number}
+                                    onClick={() => {
+                                      setSelectedVerseNum(verse.number === selectedVerseNum ? null : verse.number);
+                                      triggerSound("bead");
+                                    }}
+                                    className={`inline transition-all duration-150 cursor-pointer rounded px-1.5 py-1 ${
+                                      isSelected
+                                        ? "bg-emerald-500/10 text-emerald-950 font-extrabold ring-1 ring-emerald-500/25"
+                                        : "hover:bg-amber-950/[0.04] hover:text-amber-950 text-[#1C120C]"
+                                    }`}
+                                  >
+                                    {cleanQuranText(verse.text)}
+                                    
+                                    {/* Elegant circular Verse Number frame */}
+                                    <span className={`inline-flex items-center justify-center mx-1.5 w-6 h-6 rounded-full border text-[11px] font-sans font-black leading-none select-none ${
+                                      isSelected
+                                        ? "bg-emerald-500/10 border-emerald-500 text-emerald-800"
+                                        : "bg-amber-900/10 border-amber-900/20 text-amber-900/60"
+                                    }`}>
+                                      {verse.number}
+                                    </span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+
+                          </div>
+                        </div>
+
+                        {/* Interactive Verse Translation & Actions overlay */}
+                        {selectedVerseNum && (
+                          <div className="bg-emerald-950/30 border border-emerald-500/30 p-3 rounded-xl flex flex-col sm:flex-row justify-between items-center gap-2 text-xs animate-in slide-in-from-bottom-2 duration-200">
+                            <div className="text-right w-full sm:w-auto">
+                              <div className="flex items-center gap-1.5">
+                                <span className="bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full font-bold text-[10px]">الآية {selectedVerseNum}</span>
+                                <span className="text-white/40 text-[9px]">انقر مجدداً لإلغاء التحديد</span>
+                              </div>
+                              {selectedSurah.verses && selectedSurah.verses[selectedVerseNum - 1] && (
+                                <div className="mt-2 flex flex-col gap-1.5 text-right">
+                                  {/* Arabic Verse Text */}
+                                  <p className="text-white font-amiri text-[15px] font-bold leading-relaxed" dir="rtl">
+                                    {selectedSurah.verses[selectedVerseNum - 1].text}
+                                  </p>
+                                  {/* English Translation */}
+                                  {selectedSurah.verses[selectedVerseNum - 1].translation && (
+                                    <p className="text-white/60 text-[11px] leading-normal border-t border-white/5 pt-1.5" dir="ltr">
+                                      {selectedSurah.verses[selectedVerseNum - 1].translation}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2 w-full sm:w-auto justify-end mt-1 sm:mt-0">
                               <button
-                                onClick={() => copyStaticText(`﴿${cleanQuranText(verse.text)}﴾ [${selectedSurah.name} - آية ${verse.number}]`)}
-                                className="p-1 text-gray-300 hover:text-[#1E4D2B]"
+                                onClick={() => {
+                                  const currentVerseText = selectedSurah.verses ? selectedSurah.verses[selectedVerseNum - 1]?.text : "";
+                                  copyStaticText(`﴿${cleanQuranText(currentVerseText)}﴾ [${selectedSurah.name} - آية ${selectedVerseNum}]`);
+                                }}
+                                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/35 hover:bg-emerald-500/20 transition-all"
                               >
                                 <Copy className="w-3.5 h-3.5" />
+                                <span>نسخ الآية</span>
                               </button>
                             </div>
                           </div>
+                        )}
 
-                          {/* Arabic text */}
-                          <p
-                            className="font-amiri text-right tracking-wide leading-relaxed text-[#1E4D2B] font-semibold my-2 text-justify"
-                            style={{ fontSize: `${quranFontSize}px` }}
-                          >
-                            {cleanQuranText(verse.text)}
-                          </p>
-
-                          {/* Traditional translations */}
-                          {verse.translation && (
-                            <p className="text-[11px] text-gray-400 border-r-2 border-amber-300 pr-2 mt-1 py-0.5" dir="ltr">
-                              {verse.translation}
-                            </p>
-                          )}
-
-                          {/* Inplace static Tafsir block */}
-                          {isTaf && (
-                            <div className="mt-3 p-3 rounded-lg bg-[#F4EDE2]/50 border border-[#C5A059]/40 text-xs">
-                              <span className="font-bold text-[#1E4D2B] block">تفسير وتأمل الآية:</span>
-                              {isTafsirLoading ? (
-                                <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-2">
-                                  <Loader2 className="w-3 h-3 animate-spin text-[#C5A059]" />
-                                  <span>يجري استخلاص التفسير الروحي...</span>
-                                </div>
-                              ) : (
-                                <p className="text-gray-700 mt-1.5 leading-relaxed font-sans">{verseTafsirContent}</p>
-                              )}
-                            </div>
-                          )}
-
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-12 text-gray-400 text-xs">
-                      لا توجد آيات متوفرة لهذه السورة الكريمة حالياً.
-                    </div>
-                  )}
-                </div>
-
-                {/* Adjust Font Sizes Panel */}
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100 text-xs">
-                  <span className="text-gray-400">حجم الخط:</span>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => { setQuranFontSize(Math.max(quranFontSize-2, 16)); triggerSound("bead"); }} className="w-6 h-6 bg-gray-100 rounded text-gray-600 font-bold">-</button>
-                    <span className="font-bold">{quranFontSize}px</span>
-                    <button onClick={() => { setQuranFontSize(Math.min(quranFontSize+2, 34)); triggerSound("bead"); }} className="w-6 h-6 bg-gray-100 rounded text-gray-600 font-bold">+</button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-16 text-white/40 text-xs">
+                        لا توجد آيات متوفرة لهذه السورة الكريمة حالياً.
+                      </div>
+                    )}
                   </div>
-                </div>
 
-              </div>
+                </div>
+              )}
 
             </div>
           )}
@@ -1090,10 +1183,10 @@ export default function App() {
                     <button
                       key={cat.id}
                       onClick={() => { setSelectedAthkarCat(cat.id); triggerSound("chime"); }}
-                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 ${
+                      className={`p-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
                         isSel
-                          ? "bg-[#1E4D2B] text-white border-[#1E4D2B]"
-                          : "bg-white text-gray-600 border-[#C5A059]/30 hover:bg-gray-50"
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/40"
+                          : "bg-[#0F1E36]/50 text-white/70 border-white/5 hover:border-emerald-500/40"
                       }`}
                     >
                       <span>{cat.icon}</span>
@@ -1103,11 +1196,11 @@ export default function App() {
                 })}
               </div>
 
-              <div className="flex justify-between items-center border-t border-gray-100 pt-3">
-                <span className="text-xs text-gray-500 font-semibold">تكرار الأذكار بالضغط على البطاقة:</span>
+              <div className="flex justify-between items-center border-t border-white/5 pt-3">
+                <span className="text-xs text-white/40 font-semibold">تكرار الأذكار بالضغط على البطاقة:</span>
                 <button
                   onClick={() => resetCategoryCounter(selectedAthkarCat)}
-                  className="px-2.5 py-1 text-[10px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg flex items-center gap-1"
+                  className="px-2.5 py-1 text-[10px] font-bold text-rose-400 bg-rose-950/40 hover:bg-rose-900/50 border border-rose-900/30 rounded-lg flex items-center gap-1 transition-all"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>تصفير المجموعة</span>
@@ -1124,31 +1217,33 @@ export default function App() {
                       onClick={() => handleAthkarItemClick(selectedAthkarCat, item.id)}
                       className={`p-4 rounded-xl border transition-all cursor-pointer relative ${
                         isDone
-                          ? "bg-emerald-50/50 border-emerald-300"
-                          : "bg-white border-[#C5A059]/30 hover:border-[#1E4D2B]"
+                          ? "bg-emerald-950/30 border-emerald-500/50"
+                          : "bg-[#0F1C2E] border-white/10 hover:border-emerald-500/50"
                       }`}
                     >
                       {/* Counter Badge */}
-                      <div className="absolute top-3 left-3 text-xs bg-[#1E4D2B]/5 text-[#1E4D2B] px-2 py-1 rounded-full font-bold">
+                      <div className={`absolute top-3 left-3 text-xs px-2.5 py-1 rounded-full font-bold ${
+                        isDone ? "bg-emerald-500/10 text-emerald-400" : "bg-white/5 text-white/70"
+                      }`}>
                         {isDone ? (
-                          <span className="text-emerald-700 font-bold flex items-center gap-0.5">✓ تم الورد</span>
+                          <span className="font-bold flex items-center gap-0.5">✓ تم الورد</span>
                         ) : (
                           <span>كرر: {item.currentCount} / {item.count}</span>
                         )}
                       </div>
 
-                      <p className="font-amiri text-base text-[#1E4D2B] tracking-wide leading-relaxed pl-20 my-1 font-bold">
+                      <p className="font-amiri text-base text-white tracking-wide leading-relaxed pl-20 my-1 font-bold">
                         {item.text}
                       </p>
 
                       {item.description && (
-                        <p className="text-[10px] text-gray-400 mt-2 font-medium bg-[#F4EDE2]/30 p-2 rounded border border-[#C5A059]/10">
+                        <p className="text-[10px] text-white/50 mt-2 font-medium bg-white/[0.02] p-2 rounded border border-white/5">
                           {item.description}
                         </p>
                       )}
 
                       {item.reference && (
-                        <span className="text-[9px] text-gray-400 float-left mt-2 block font-normal">{item.reference}</span>
+                        <span className="text-[9px] text-white/30 float-left mt-2 block font-normal">{item.reference}</span>
                       )}
                       
                     </div>
@@ -1164,8 +1259,8 @@ export default function App() {
             <div className="flex-1 flex flex-col items-center justify-center gap-5 py-4 text-center select-none font-kufi">
               
               <div>
-                <span className="bg-[#1E4D2B] text-white px-3 py-1 rounded-full text-[10px] font-bold">المسبحة الإلكترونية المصرية</span>
-                <p className="text-gray-500 text-[10px] mt-1.5">انقر على المستطيل الدائري الكبير لزيادة حبات تسبيحك</p>
+                <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold">المسبحة الإلكترونية المصرية</span>
+                <p className="text-white/40 text-[10px] mt-1.5">انقر على المستطيل الدائري الكبير لزيادة حبات تسبيحك</p>
               </div>
 
               {/* Fast phrase picker */}
@@ -1187,8 +1282,8 @@ export default function App() {
                         setTasbihCount(0);
                         triggerSound("chime");
                       }}
-                      className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg border transition-colors ${
-                        isCur ? "bg-[#C5A059] text-[#1E4D2B] border-[#C5A059]" : "bg-white text-gray-600 border-gray-200"
+                      className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg border transition-all ${
+                        isCur ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/40" : "bg-[#0F1E36]/50 text-white/70 border-white/5 hover:border-emerald-500/40"
                       }`}
                     >
                       {ph}
@@ -1201,34 +1296,34 @@ export default function App() {
               <div className="flex flex-col items-center gap-3 w-full">
                 
                 {/* Current sessions cumulative */}
-                <div className="text-[10px] text-[#1E4D2B] font-bold bg-[#F4EDE2]/70 px-4 py-1 rounded-full border border-[#C5A059]/30">
+                <div className="text-[10px] text-emerald-400 font-bold bg-emerald-500/5 px-4 py-1 rounded-full border border-emerald-500/20">
                   مجموع الأوراد بالجلسة الحالية: <span className="font-mono text-xs">{sessionTotalTasbih}</span>
                 </div>
 
                 {/* Simulated bead clicker */}
                 <button
                   onClick={handleSebhaClick}
-                  className="w-44 h-44 rounded-full bg-gradient-to-br from-[#1E4D2B] to-[#11311b] border-4 border-[#C5A059] flex flex-col items-center justify-center text-center shadow-lg active:scale-95 transition-all text-white relative focus:outline-none"
+                  className="w-44 h-44 rounded-full bg-gradient-to-br from-[#0F1E36] to-[#0A121E] border-4 border-emerald-500 flex flex-col items-center justify-center text-center shadow-lg active:scale-95 transition-all text-white relative focus:outline-none"
                 >
-                  <span className="text-[10px] text-[#C5A059] opacity-70">انقر هنا للتسبيح</span>
-                  <span className="text-4xl font-mono font-black my-1">{tasbihCount}</span>
-                  <span className="text-[10px] text-white/80 font-bold truncate max-w-[130px]">{tasbihPhrase}</span>
+                  <span className="text-[10px] text-emerald-400 opacity-80">انقر هنا للتسبيح</span>
+                  <span className="text-4xl font-mono font-black my-1 text-white">{tasbihCount}</span>
+                  <span className="text-[10px] text-emerald-400 font-bold truncate max-w-[130px]">{tasbihPhrase}</span>
                   
                   {/* Goal label indicator inside circle */}
-                  <span className="absolute bottom-2.5 text-[9px] text-[#C5A059]/80 font-semibold">المستهدف: {tasbihGoal}</span>
+                  <span className="absolute bottom-2.5 text-[9px] text-white/40 font-semibold">المستهدف: {tasbihGoal}</span>
                 </button>
 
                 {/* Adjust Goal & Reset */}
                 <div className="flex items-center gap-3.5 mt-2">
-                  <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-lg text-xs">
-                    <span className="text-gray-400 font-bold">الإنهاء عند:</span>
+                  <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-lg text-xs border border-white/5">
+                    <span className="text-white/40 font-bold px-1">الإنهاء عند:</span>
                     {[33, 99, 100].map(goalVal => {
                       const isG = tasbihGoal === goalVal;
                       return (
                         <button
                           key={goalVal}
                           onClick={() => { setTasbihGoal(goalVal); setTasbihCount(0); triggerSound("chime"); }}
-                          className={`px-2 py-0.5 rounded font-black ${isG ? "bg-[#1E4D2B] text-white" : "bg-transparent text-gray-600"}`}
+                          className={`px-2 py-0.5 rounded font-black transition-all ${isG ? "bg-emerald-500/15 text-emerald-400" : "bg-transparent text-white/60 hover:text-white"}`}
                         >
                           {goalVal}
                         </button>
@@ -1238,7 +1333,7 @@ export default function App() {
 
                   <button
                     onClick={() => { setTasbihCount(0); triggerSound("chime"); }}
-                    className="p-1 px-2 text-[10px] bg-red-50 text-red-700 hover:bg-red-100 font-bold rounded-lg border border-red-200"
+                    className="p-1 px-3.5 text-[10px] bg-red-950/40 text-red-400 hover:bg-red-900/50 font-bold rounded-lg border border-red-900/30 transition-all"
                   >
                     إعادة صفر
                   </button>
@@ -1254,12 +1349,12 @@ export default function App() {
             <div className="flex-1 flex flex-col items-center justify-center gap-5 text-center py-4 select-none font-kufi">
               
               <div>
-                <span className="bg-[#1E4D2B] text-white px-3 py-1 rounded-full text-[10px] font-bold">تحديد اتجاه القبلة</span>
-                <p className="text-gray-500 text-[10px] mt-1.5">متركزة لمحافظة {selectedCity.nameAr}</p>
+                <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-[10px] font-bold">تحديد اتجاه القبلة</span>
+                <p className="text-white/40 text-[10px] mt-1.5">متركزة لمحافظة {selectedCity.nameAr}</p>
               </div>
 
               {/* Compass simulator container */}
-              <div className="relative w-48 h-48 rounded-full border-4 border-[#C5A059] bg-[#1E4D2B]/5 flex items-center justify-center p-2 shadow-inner">
+              <div className="relative w-48 h-48 rounded-full border-4 border-emerald-500 bg-[#0F1C2E] flex items-center justify-center p-2 shadow-inner">
                 
                 {/* Compass Dial aligned to relative angle */}
                 <div
@@ -1267,17 +1362,17 @@ export default function App() {
                   style={{ transform: `rotate(${-userCompassHeading}deg)` }}
                 >
                   {/* North marker */}
-                  <span className="absolute top-1 left-1/2 -translate-x-1/2 text-rose-600 font-black text-xs font-mono">N</span>
+                  <span className="absolute top-1 left-1/2 -translate-x-1/2 text-rose-500 font-black text-xs font-mono">N</span>
                   {/* East marker */}
-                  <span className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 font-black text-[9px] font-mono">E</span>
+                  <span className="absolute right-1 top-1/2 -translate-y-1/2 text-white/40 font-black text-[9px] font-mono">E</span>
                   {/* South marker */}
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-gray-500 font-black text-[9px] font-mono">S</span>
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 text-white/40 font-black text-[9px] font-mono">S</span>
                   {/* West marker */}
-                  <span className="absolute left-1 top-1/2 -translate-y-1/2 text-gray-500 font-black text-[9px] font-mono">W</span>
+                  <span className="absolute left-1 top-1/2 -translate-y-1/2 text-white/40 font-black text-[9px] font-mono">W</span>
 
                   {/* Qibla Angle Needle Pointer (Targeting Mecca around 135°-138° in Egypt) */}
                   <div
-                    className="absolute w-1.5 h-1/2 bg-[#C5A059] origin-bottom bottom-1/2 left-1/2 -translate-x-1/2"
+                    className="absolute w-1.5 h-1/2 bg-emerald-500 origin-bottom bottom-1/2 left-1/2 -translate-x-1/2"
                     style={{ transform: `rotate(${targetQiblaAngle}deg)` }}
                   >
                     {/* Tiny Kaaba Dome Representation top */}
@@ -1286,16 +1381,16 @@ export default function App() {
                 </div>
 
                 {/* Inner alignment confirmator bulb */}
-                <div className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-xs shadow ${isAligned ? "bg-emerald-500 text-white" : "bg-white text-gray-400"}`}>
+                <div className={`absolute w-8 h-8 rounded-full flex items-center justify-center text-xs shadow transition-all ${isAligned ? "bg-emerald-500 text-white" : "bg-white/5 text-white/40"}`}>
                   {isAligned ? "✓" : "⚙"}
                 </div>
 
               </div>
 
               {/* Slider simulation for user to manually adjust the heading on screen (مريح للعين وتفاعلي كأنك تلف الهاتف) */}
-              <div className="w-full max-w-xs bg-gray-50 border border-gray-250 p-4 rounded-xl text-xs">
+              <div className="w-full max-w-xs bg-[#0F1C2E] border border-white/5 p-4 rounded-xl text-xs shadow-md">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-gray-650 block">موازنة الاتجاه الجغرافي:</span>
+                  <span className="font-bold text-white/80 block">موازنة الاتجاه الجغرافي:</span>
                 </div>
                 
                 <input
@@ -1307,19 +1402,19 @@ export default function App() {
                     const nextHeading = Number(e.target.value);
                     setUserCompassHeading(nextHeading);
                   }}
-                  className="w-full mt-2 cursor-pointer accent-[#1E4D2B]"
+                  className="w-full mt-2 cursor-pointer accent-emerald-500"
                 />
-                <div className="flex justify-between items-center text-[10px] text-gray-400 mt-2 font-mono">
+                <div className="flex justify-between items-center text-[10px] text-white/40 mt-2 font-mono">
                   <span>زاوية الهاتف الحالية: {userCompassHeading}°</span>
-                  <span className="text-[#1E4D2B] font-bold">زاوية القبلة لمحافظتك: {targetQiblaAngle}°</span>
+                  <span className="text-emerald-400 font-bold">زاوية القبلة لمحافظتك: {targetQiblaAngle}°</span>
                 </div>
 
                 {isAligned ? (
-                  <p className="text-[11px] text-emerald-700 font-bold leading-normal mt-2.5 text-center">
+                  <p className="text-[11px] text-emerald-400 font-bold leading-normal mt-2.5 text-center">
                     ✓ الهاتف موجه بدقة فائقة نحو مكة المكرمة والكعبة الشريفة الآن.
                   </p>
                 ) : (
-                  <p className="text-[10px] text-amber-700 font-medium leading-normal mt-2.5 text-center">
+                  <p className="text-[10px] text-amber-500/80 font-medium leading-normal mt-2.5 text-center">
                     حرك شريط الموازنة بالأعلى لمحاكاة محاذاة البوصلة للحصول على التوجيه السليم.
                   </p>
                 )}
@@ -1333,56 +1428,66 @@ export default function App() {
         </div>
 
         {/* Stable and Comfortable Bottom App Navigation Bar */}
-        <footer className="bg-white border-t border-gray-200 px-3 py-2 flex justify-around items-center select-none shadow-md z-15">
+        <footer className="transition-all duration-300 px-2 py-3 flex justify-around items-center select-none bg-black/70 border-t border-white/10 shadow-2xl z-20 pb-5">
           
           <button
             onClick={() => { setActiveTab("home"); triggerSound("chime"); }}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${
-              activeTab === "home" ? "text-[#1E4D2B] font-bold" : "text-gray-400 hover:text-gray-600"
+            className={`flex flex-col items-center justify-center transition-all duration-300 ${
+              activeTab === "home"
+                ? "text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-2xl font-bold scale-105"
+                : "text-white/50 hover:text-white/80 px-3 py-1.5"
             }`}
           >
-            <Clock className="w-5 h-5 mb-1" />
-            <span className="text-[9px]">الرئيسية</span>
+            <Home className="w-[22px] h-[22px]" strokeWidth={2.2} />
+            <span className="text-[9px] mt-1 font-bold">الرئيسية</span>
           </button>
 
           <button
             onClick={() => { setActiveTab("quran"); triggerSound("chime"); }}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${
-              activeTab === "quran" ? "text-[#1E4D2B] font-bold" : "text-gray-400 hover:text-gray-600"
+            className={`flex flex-col items-center justify-center transition-all duration-300 ${
+              activeTab === "quran"
+                ? "text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-2xl font-bold scale-105"
+                : "text-white/50 hover:text-white/80 px-3 py-1.5"
             }`}
           >
-            <BookOpen className="w-5 h-5 mb-1" />
-            <span className="text-[9px]">المصحف</span>
+            <BookOpen className="w-[22px] h-[22px]" strokeWidth={2.2} />
+            <span className="text-[9px] mt-1 font-bold">المصحف</span>
           </button>
 
           <button
             onClick={() => { setActiveTab("athkar"); triggerSound("chime"); }}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${
-              activeTab === "athkar" ? "text-[#1E4D2B] font-bold" : "text-gray-400 hover:text-gray-600"
+            className={`flex flex-col items-center justify-center transition-all duration-300 ${
+              activeTab === "athkar"
+                ? "text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-2xl font-bold scale-105"
+                : "text-white/50 hover:text-white/80 px-3 py-1.5"
             }`}
           >
-            <Layers className="w-5 h-5 mb-1" />
-            <span className="text-[9px]">الأذكار</span>
+            <Layers className="w-[22px] h-[22px]" strokeWidth={2.2} />
+            <span className="text-[9px] mt-1 font-bold">الأذكار</span>
           </button>
 
           <button
             onClick={() => { setActiveTab("sebha"); triggerSound("chime"); }}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${
-              activeTab === "sebha" ? "text-[#1E4D2B] font-bold" : "text-gray-400 hover:text-gray-600"
+            className={`flex flex-col items-center justify-center transition-all duration-300 ${
+              activeTab === "sebha"
+                ? "text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-2xl font-bold scale-105"
+                : "text-white/50 hover:text-white/80 px-3 py-1.5"
             }`}
           >
-            <Award className="w-5 h-5 mb-1" />
-            <span className="text-[9px]">المسبحة</span>
+            <Award className="w-[22px] h-[22px]" strokeWidth={2.2} />
+            <span className="text-[9px] mt-1 font-bold">المسبحة</span>
           </button>
 
           <button
             onClick={() => { setActiveTab("qibla"); triggerSound("chime"); }}
-            className={`flex flex-col items-center p-2 rounded-xl transition-colors ${
-              activeTab === "qibla" ? "text-[#1E4D2B] font-bold" : "text-gray-400 hover:text-gray-600"
+            className={`flex flex-col items-center justify-center transition-all duration-300 ${
+              activeTab === "qibla"
+                ? "text-emerald-400 bg-emerald-500/10 px-4 py-1.5 rounded-2xl font-bold scale-105"
+                : "text-white/50 hover:text-white/80 px-3 py-1.5"
             }`}
           >
-            <Compass className="w-5 h-5 mb-1" />
-            <span className="text-[9px]">القبلة</span>
+            <Compass className="w-[22px] h-[22px]" strokeWidth={2.2} />
+            <span className="text-[9px] mt-1 font-bold">القبلة</span>
           </button>
 
         </footer>
