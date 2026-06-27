@@ -330,6 +330,8 @@ export default function App() {
   }, [selectedSurah.number]);
 
   const [quranFontSize, setQuranFontSize] = useState<number>(23);
+  const [isMushafFullScreen, setIsMushafFullScreen] = useState<boolean>(false);
+  const [isFullScreenBtnVisible, setIsFullScreenBtnVisible] = useState<boolean>(true);
   const [quranSearch, setQuranSearch] = useState<string>("");
   const [showSurahDrawer, setShowSurahDrawer] = useState<boolean>(false);
   const [selectedVerseNum, setSelectedVerseNum] = useState<number | null>(null);
@@ -982,7 +984,7 @@ export default function App() {
                             <span className="text-sm font-bold">{surah.name}</span>
                           </div>
                           <div className="flex items-center gap-2 text-[10px] text-white/40">
-                            <span>{surah.revelationType === "Meccan" ? "مكية" : "مدنية"}</span>
+                            <span>{surah.revelationType === "Meccan" || surah.revelationType === "مكية" ? "مكية" : "مدنية"}</span>
                             <span>•</span>
                             <span>{surah.numberOfAyahs} آية</span>
                           </div>
@@ -1050,6 +1052,20 @@ export default function App() {
                           className="flex-1 bg-[#FAF6EC] text-[#1C120C] border-2 border-amber-900/15 rounded-2xl p-1.5 md:p-2.5 shadow-2xl relative min-h-[460px] max-h-[500px] flex flex-col" 
                           dir="rtl"
                         >
+                          {/* Zoom Button: Square inside a Circle */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              triggerSound("bead");
+                              setIsMushafFullScreen(true);
+                              setIsFullScreenBtnVisible(true);
+                            }}
+                            className="absolute top-4 right-4 z-[110] w-9 h-9 rounded-full flex items-center justify-center border border-amber-900/10 bg-amber-900/5 text-amber-900/40 hover:bg-amber-900/15 hover:text-amber-900/80 shadow-sm transition-all duration-200 cursor-pointer"
+                            title="ملء الشاشة"
+                          >
+                            <div className="w-3.5 h-3.5 border-2 rounded-[3px] border-current" />
+                          </button>
+
                           {/* Inner Decorative Islamic Border Frame */}
                           <div className="flex-1 border-2 border-amber-900/10 rounded-xl p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col justify-start relative">
                             
@@ -1062,7 +1078,7 @@ export default function App() {
                               <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-amber-950/30"></div>
                               
                               <span className="text-[9px] text-amber-900/60 font-bold block leading-none mb-1">
-                                سورة {selectedSurah.revelationType === "Meccan" ? "مكية" : "مدنية"} • {selectedSurah.numberOfAyahs} آية
+                                سورة {selectedSurah.revelationType === "Meccan" || selectedSurah.revelationType === "مكية" ? "مكية" : "مدنية"} • {selectedSurah.numberOfAyahs} آية
                               </span>
                               <h3 className="font-amiri text-xl font-extrabold text-amber-950 tracking-wide leading-none">
                                 {selectedSurah.name}
@@ -1086,7 +1102,8 @@ export default function App() {
                                 return (
                                   <span
                                     key={verse.number}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       setSelectedVerseNum(verse.number === selectedVerseNum ? null : verse.number);
                                       triggerSound("bead");
                                     }}
@@ -1491,6 +1508,121 @@ export default function App() {
           </button>
 
         </footer>
+
+        {/* Fullscreen Mushaf Page */}
+        {isMushafFullScreen && (
+          <div 
+            className="absolute inset-0 z-[100] bg-[#FAF6EC] text-[#1C120C] p-3 md:p-5 flex flex-col w-full h-full select-none overflow-hidden animate-in fade-in duration-300"
+            dir="rtl"
+            onClick={() => {
+              setIsFullScreenBtnVisible(prev => !prev);
+            }}
+          >
+            {/* Zoom Button: Square inside a Circle */}
+            {isFullScreenBtnVisible && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerSound("bead");
+                  setIsMushafFullScreen(false);
+                }}
+                className="absolute top-4 right-4 z-[110] w-9 h-9 rounded-full flex items-center justify-center border border-amber-900/10 bg-amber-900/5 text-amber-900/40 hover:bg-amber-900/15 hover:text-amber-900/80 shadow-md transition-all duration-200 cursor-pointer"
+                title="تصغير الشاشة"
+              >
+                <div className="w-3.5 h-3.5 border-2 rounded-[3px] border-current scale-90" />
+              </button>
+            )}
+
+            {/* Inner Decorative Islamic Border Frame */}
+            <div className="flex-1 border-2 border-amber-900/10 rounded-xl p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col justify-start relative">
+              
+              {/* Traditional Surah Header Frame Box */}
+              <div className="border border-amber-950/20 rounded-lg py-2 px-4 mb-5 bg-amber-950/[0.03] text-center select-none max-w-xs mx-auto w-full relative">
+                {/* Decorative corner accents */}
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-amber-950/30"></div>
+                <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-amber-950/30"></div>
+                <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-amber-950/30"></div>
+                <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-amber-950/30"></div>
+                
+                <span className="text-[9px] text-amber-900/60 font-bold block leading-none mb-1">
+                  سورة {selectedSurah.revelationType === "Meccan" || selectedSurah.revelationType === "مكية" ? "مكية" : "مدنية"} • {selectedSurah.numberOfAyahs} آية
+                </span>
+                <h3 className="font-amiri text-xl font-extrabold text-amber-950 tracking-wide leading-none">
+                  {selectedSurah.name}
+                </h3>
+              </div>
+
+              {/* Basmalah */}
+              {selectedSurah.number !== 1 && selectedSurah.number !== 9 && (
+                <div className="text-center mb-5 font-bold text-amber-950 font-amiri text-lg select-none tracking-normal">
+                  بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                </div>
+              )}
+
+              {/* Quran text flowing naturally */}
+              <div 
+                className="leading-[2.6] text-center font-amiri tracking-normal animate-in fade-in duration-300" 
+                style={{ fontSize: `${quranFontSize}px` }}
+              >
+                {selectedSurah.verses && selectedSurah.verses.map((verse) => {
+                  const isSelected = selectedVerseNum === verse.number;
+                  return (
+                    <span
+                      key={verse.number}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedVerseNum(verse.number === selectedVerseNum ? null : verse.number);
+                        triggerSound("bead");
+                      }}
+                      className={`inline transition-all duration-150 cursor-pointer rounded px-1.5 py-1 ${
+                        isSelected
+                          ? "bg-emerald-500/10 text-emerald-950 font-extrabold ring-1 ring-emerald-500/25"
+                          : "hover:bg-amber-950/[0.04] hover:text-amber-950 text-[#1C120C]"
+                      }`}
+                    >
+                      {cleanQuranText(verse.text)}
+                      
+                      {/* Elegant circular Verse Number frame */}
+                      <span className={`inline-flex items-center justify-center mx-1.5 w-6 h-6 rounded-full border text-[11px] font-sans font-black leading-none select-none ${
+                        isSelected
+                          ? "bg-emerald-500/10 border-emerald-500 text-emerald-800"
+                          : "bg-amber-900/10 border-amber-900/20 text-amber-900/60"
+                      }`}>
+                        {verse.number}
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+
+            </div>
+
+            {/* Elegant compact translation overlay inside fullscreen if a verse is selected and the UI is visible */}
+            {selectedVerseNum && isFullScreenBtnVisible && selectedSurah.verses && selectedSurah.verses[selectedVerseNum - 1] && (
+              <div className="absolute bottom-6 left-6 right-6 z-[110] bg-amber-950/95 text-[#FAF6EC] border border-amber-900/30 p-3 rounded-xl flex flex-col gap-1.5 shadow-xl animate-in slide-in-from-bottom-2 duration-200" onClick={(e) => e.stopPropagation()}>
+                <div className="flex justify-between items-center border-b border-amber-900/20 pb-1.5">
+                  <span className="bg-[#FAF6EC]/10 text-amber-200 px-2 py-0.5 rounded-full font-bold text-[9px]">الآية {selectedVerseNum}</span>
+                  <button 
+                    onClick={() => { setSelectedVerseNum(null); triggerSound("bead"); }}
+                    className="text-[#FAF6EC]/60 hover:text-white text-[10px]"
+                  >
+                    إغلاق التحديد
+                  </button>
+                </div>
+                {/* Arabic Text */}
+                <p className="font-amiri text-[13px] font-bold leading-relaxed text-right" dir="rtl">
+                  {selectedSurah.verses[selectedVerseNum - 1].text}
+                </p>
+                {/* English Text */}
+                {selectedSurah.verses[selectedVerseNum - 1].translation && (
+                  <p className="text-[#FAF6EC]/70 text-[10px] leading-normal border-t border-amber-900/20 pt-1 text-left" dir="ltr">
+                    {selectedSurah.verses[selectedVerseNum - 1].translation}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

@@ -174,7 +174,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 20,
-    name: "سُورَةُ طه",
+    name: "سُورَةُ طٰهٰ",
     englishName: "Ta-Ha",
     revelationType: "مكية",
     numberOfAyahs: 135,
@@ -302,7 +302,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 36,
-    name: "سُورَةُ يس",
+    name: "سُورَةُ يسٓ",
     englishName: "Ya-Sin",
     revelationType: "مكية",
     numberOfAyahs: 83,
@@ -318,7 +318,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 38,
-    name: "سُورَةُ ص",
+    name: "سُورَةُ صٓ",
     englishName: "Sad",
     revelationType: "مكية",
     numberOfAyahs: 88,
@@ -414,7 +414,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 50,
-    name: "سُورَةُ ق",
+    name: "سُورَةُ قٓ",
     englishName: "Qaf",
     revelationType: "مكية",
     numberOfAyahs: 45,
@@ -478,7 +478,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 58,
-    name: "سُورَةُ المُجَادَلَةِ",
+    name: "سُورَةُ المُجَادِلَةِ",
     englishName: "Al-Mujadilah",
     revelationType: "مدنية",
     numberOfAyahs: 22,
@@ -494,7 +494,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 60,
-    name: "سُورَةُ M_المُمْتَحَنَةِ",
+    name: "سُورَةُ المُمْتَحَنَةِ",
     englishName: "Al-Mumtahanah",
     revelationType: "مدنية",
     numberOfAyahs: 13,
@@ -701,7 +701,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 82,
-    name: "سُورَةُ الانْفِطَارِ",
+    name: "سُورَةُ الِانْفِطَارِ",
     englishName: "Al-Infitar",
     revelationType: "مكية",
     numberOfAyahs: 19,
@@ -717,7 +717,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 84,
-    name: "سُورَةُ الانْشِقَاقِ",
+    name: "سُورَةُ الِانْشِقَاقِ",
     englishName: "Al-Inshiqaq",
     revelationType: "مكية",
     numberOfAyahs: 25,
@@ -893,7 +893,7 @@ export const quranData: Surah[] = [
   },
   {
     number: 106,
-    name: "سُورَةُ القُرَيْشِ",
+    name: "سُورَةُ قُرَيْشٍ",
     englishName: "Quraysh",
     revelationType: "مكية",
     numberOfAyahs: 4,
